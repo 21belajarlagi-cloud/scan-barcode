@@ -387,6 +387,52 @@ window.addEventListener('message', function(event) {
 
   }
 
+if (pesan.type === 'HISTORY_DATA') {
+
+  document.getElementById('total').textContent =
+    pesan.total;
+
+  const area = document.getElementById('history');
+
+  area.innerHTML = '';
+
+  if (!pesan.data || pesan.data.length === 0) {
+
+    area.textContent = 'Belum ada data scan.';
+
+    return;
+
+  }
+
+  pesan.data.forEach(function(item) {
+
+    const div = document.createElement('div');
+
+    div.className = 'history';
+
+    const kode = document.createElement('strong');
+
+    kode.textContent = item.barcode;
+
+    const detail = document.createElement('div');
+
+    detail.className = 'small';
+
+    detail.textContent =
+      item.tanggal + ' | ' +
+      item.jam + ' | ' +
+      item.format;
+
+    div.appendChild(kode);
+
+    div.appendChild(detail);
+
+    area.appendChild(div);
+
+  });
+
+}
+
 });
 
 
