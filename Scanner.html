@@ -1,0 +1,653 @@
+
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
+
+<title>Scan Barcode HP</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+header {
+  background: #1d4ed8;
+  color: white;
+  text-align: center;
+  padding: 22px 12px;
+}
+
+header h2 {
+  margin: 0 0 7px;
+}
+
+header p {
+  font-size: 13px;
+  margin: 0;
+}
+
+.container {
+  max-width: 600px;
+  margin: 18px auto;
+  padding: 0 14px;
+}
+
+.card {
+  background: white;
+  padding: 17px;
+  margin-bottom: 15px;
+  border-radius: 13px;
+  box-shadow: 0 3px 12px #0000000c;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 15px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.primary {
+  background: #1d4ed8;
+  color: white;
+}
+
+.danger {
+  background: #dc2626;
+  color: white;
+}
+
+.secondary {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+#reader {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.status {
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+
+.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.result {
+  background: #f8fafc;
+  padding: 13px;
+  border-radius: 8px;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+
+.number {
+  font-size: 28px;
+  color: #1d4ed8;
+  font-weight: bold;
+}
+
+.history {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 11px 0;
+  overflow-wrap: anywhere;
+}
+
+.small {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 5px;
+}
+
+#gasFrame {
+  width: 100%;
+  height: 145px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+footer {
+  text-align: center;
+  color: #64748b;
+  font-size: 12px;
+  padding: 20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+  <h2>📷 SCAN BARCODE</h2>
+
+  <p>Scanner Barcode & QR Code Berbasis HP</p>
+
+</header>
+
+
+<div class="container">
+
+  <div class="card">
+
+    <b>STATUS KONEKSI DATABASE</b>
+
+    <div id="connection" class="status">
+      Menghubungkan ke Google Sheets...
+    </div>
+
+    <!--
+      GANTI URL INI DENGAN URL WEB APP APPS SCRIPT
+      Contoh berakhiran /exec
+    -->
+
+    <iframe
+      id="gasFrame"
+      src="https://script.google.com/macros/s/GANTI_DENGAN_ID_DEPLOYMENT/exec"
+      allow="clipboard-write">
+    </iframe>
+
+  </div>
+
+
+  <div class="card">
+
+    <b>TOTAL SCAN BERHASIL</b>
+
+    <div class="number" id="total">0</div>
+
+  </div>
+
+
+  <div class="card">
+
+    <h3>📸 Pemindaian Kamera</h3>
+
+    <div id="reader"></div>
+
+    <button class="primary"
+            id="startBtn"
+            onclick="mulaiScan()">
+
+      AKTIFKAN KAMERA
+
+    </button>
+
+    <button class="danger"
+            id="stopBtn"
+            onclick="hentikanScan()"
+            style="display:none">
+
+      HENTIKAN KAMERA
+
+    </button>
+
+    <div id="status" class="status">
+
+      Menunggu kamera diaktifkan.
+
+    </div>
+
+    <div id="hasil" class="result"
+         style="display:none">
+
+      <b>Hasil Barcode:</b>
+
+      <div id="barcodeText"></div>
+
+      <div id="saveStatus" class="small"></div>
+
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <h3>⌨️ Input Barcode Manual</h3>
+
+    <input
+      type="text"
+      id="manualBarcode"
+      placeholder="Masukkan kode barcode">
+
+    <button class="primary"
+            onclick="simpanManual()">
+
+      SIMPAN BARCODE
+
+    </button>
+
+  </div>
+
+
+  <div class="card">
+
+    <h3>📋 Riwayat Scan</h3>
+
+    <div id="history">
+      Menunggu data...
+    </div>
+
+    <button class="secondary"
+            onclick="muatRiwayat()">
+
+      REFRESH RIWAYAT
+
+    </button>
+
+  </div>
+
+</div>
+
+
+<footer>
+
+  Aplikasi Scan Barcode - Google Sheets
+
+</footer>
+
+
+<script>
+
+let scanner = null;
+
+let sedangScan = false;
+
+let siapDatabase = false;
+
+let sedangMenyimpan = false;
+
+let totalScan = 0;
+
+let gasOrigin = '';
+
+let kodeTerakhir = '';
+
+let waktuTerakhir = 0;
+
+
+// ====================================
+// KONEKSI GOOGLE APPS SCRIPT
+// ====================================
+
+const gasFrame = document.getElementById('gasFrame');
+
+
+window.addEventListener('message', function(event) {
+
+  if (event.source !== gasFrame.contentWindow) return;
+
+  if (gasOrigin && event.origin !== gasOrigin) return;
+
+  const pesan = event.data;
+
+  if (!pesan || typeof pesan !== 'object') return;
+
+
+  if (pesan.type === 'GAS_READY') {
+
+    gasOrigin = event.origin;
+
+    siapDatabase = true;
+
+    document.getElementById('connection').textContent =
+      '✓ DATABASE GOOGLE SHEETS TERHUBUNG';
+
+    document.getElementById('connection').className =
+      'status success';
+
+    muatRiwayat();
+
+  }
+
+
+  if (pesan.type === 'SCAN_SAVED') {
+
+    sedangMenyimpan = false;
+
+    totalScan++;
+
+    document.getElementById('total').textContent = totalScan;
+
+    document.getElementById('saveStatus').textContent =
+      '✓ Berhasil disimpan: ' +
+      pesan.tanggal + ' ' + pesan.jam;
+
+    document.getElementById('status').textContent =
+      'Barcode berhasil masuk ke Google Sheets.';
+
+    document.getElementById('status').className =
+      'status success';
+
+    muatRiwayat();
+
+  }
+
+
+  if (pesan.type === 'SCAN_ERROR') {
+
+    sedangMenyimpan = false;
+
+    document.getElementById('saveStatus').textContent =
+      'Gagal: ' + pesan.message;
+
+    document.getElementById('status').textContent =
+      'Penyimpanan gagal: ' + pesan.message;
+
+    document.getElementById('status').className =
+      'status error';
+
+  }
+
+});
+
+
+function kirimData(barcode, format) {
+
+  if (!siapDatabase) {
+
+    alert('Database belum terhubung. Tunggu beberapa saat.');
+
+    return;
+
+  }
+
+  if (sedangMenyimpan) return;
+
+  sedangMenyimpan = true;
+
+  document.getElementById('hasil').style.display = 'block';
+
+  document.getElementById('barcodeText').textContent = barcode;
+
+  document.getElementById('saveStatus').textContent =
+    'Mengirim data ke Google Sheets...';
+
+  gasFrame.contentWindow.postMessage({
+
+    type: 'SCAN_DATA',
+
+    barcode: barcode,
+
+    format: format,
+
+    perangkat: navigator.userAgent
+
+  }, gasOrigin);
+
+  // Pengaman jika tidak ada konfirmasi dari server
+  setTimeout(function() {
+
+    if (sedangMenyimpan) {
+
+      sedangMenyimpan = false;
+
+      document.getElementById('saveStatus').textContent =
+        'Belum ada konfirmasi. Periksa koneksi dan riwayat sebelum mencoba ulang.';
+
+    }
+
+  }, 20000);
+
+}
+
+
+// ====================================
+// AKTIFKAN KAMERA
+// ====================================
+
+async function mulaiScan() {
+
+  if (sedangScan) return;
+
+  if (!siapDatabase) {
+
+    tampilStatus(
+      'Database belum terhubung.',
+      'error'
+    );
+
+    return;
+
+  }
+
+  if (!navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia) {
+
+    tampilStatus(
+      'Browser tidak mendukung kamera. Gunakan Chrome HTTPS.',
+      'error'
+    );
+
+    return;
+
+  }
+
+  try {
+
+    if (!scanner) {
+
+      scanner = new Html5Qrcode('reader');
+
+    }
+
+    tampilStatus('Meminta izin kamera...', '');
+
+    await scanner.start(
+
+      { facingMode: 'environment' },
+
+      {
+        fps: 10,
+        qrbox: {
+          width: 250,
+          height: 250
+        }
+      },
+
+      berhasilScan,
+
+      function() {}
+
+    );
+
+
+    sedangScan = true;
+
+    document.getElementById('startBtn').style.display = 'none';
+
+    document.getElementById('stopBtn').style.display = 'block';
+
+    tampilStatus(
+      'Kamera aktif. Arahkan ke barcode.',
+      'success'
+    );
+
+  }
+
+  catch(error) {
+
+    tampilStatus(
+      'Kamera gagal diaktifkan: ' + error.message,
+      'error'
+    );
+
+  }
+
+}
+
+
+// ====================================
+// HASIL SCAN
+// ====================================
+
+function berhasilScan(decodedText, decodedResult) {
+
+  if (sedangMenyimpan) return;
+
+  const sekarang = Date.now();
+
+  if (
+    decodedText === kodeTerakhir &&
+    sekarang - waktuTerakhir < 2000
+  ) return;
+
+  kodeTerakhir = decodedText;
+
+  waktuTerakhir = sekarang;
+
+  const format =
+    decodedResult.result.format.formatName || 'Barcode';
+
+  kirimData(decodedText, format);
+
+}
+
+
+// ====================================
+// HENTIKAN KAMERA
+// ====================================
+
+async function hentikanScan() {
+
+  if (!scanner || !sedangScan) return;
+
+  try {
+
+    await scanner.stop();
+
+    sedangScan = false;
+
+    document.getElementById('startBtn').style.display = 'block';
+
+    document.getElementById('stopBtn').style.display = 'none';
+
+    tampilStatus('Kamera dihentikan.', '');
+
+  }
+
+  catch(error) {
+
+    tampilStatus(
+      'Gagal menghentikan kamera.',
+      'error'
+    );
+
+  }
+
+}
+
+
+// ====================================
+// INPUT MANUAL
+// ====================================
+
+function simpanManual() {
+
+  const input = document.getElementById('manualBarcode');
+
+  const kode = input.value.trim();
+
+  if (!kode) {
+
+    alert('Masukkan kode barcode.');
+
+    return;
+
+  }
+
+  kirimData(kode, 'Input Manual');
+
+  input.value = '';
+
+}
+
+
+// ====================================
+// STATUS
+// ====================================
+
+function tampilStatus(pesan, jenis) {
+
+  const el = document.getElementById('status');
+
+  el.textContent = pesan;
+
+  el.className = 'status ' + (jenis || '');
+
+}
+
+
+// ====================================
+// RIWAYAT SCAN
+// ====================================
+
+function muatRiwayat() {
+
+  if (!siapDatabase) return;
+
+  gasFrame.contentWindow.postMessage({
+
+    type: 'GET_HISTORY'
+
+  }, gasOrigin);
+
+}
+
+
+// ====================================
+// MENERIMA RIWAYAT
+// ====================================
+
+</script>
+
+</body>
+</html>
