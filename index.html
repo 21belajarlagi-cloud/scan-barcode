@@ -321,14 +321,12 @@ function setStatus(element, message, type) {
 
 window.addEventListener('message', function(event) {
 
-  // Hanya menerima pesan dari iframe Apps Script
   if (event.source !== gasFrame.contentWindow) {
     return;
   }
 
   const data = event.data || {};
 
-  // Handshake pertama: simpan origin iframe yang sebenarnya
   if (data.type === 'GAS_READY') {
 
     gasOrigin = event.origin;
@@ -340,10 +338,15 @@ window.addEventListener('message', function(event) {
     return;
   }
 
-  // Pesan berikutnya harus berasal dari origin yang sama
   if (!gasOrigin || event.origin !== gasOrigin) {
     return;
   }
+
+  // Bagian CONNECTION_RESULT,
+  // SAVE_RESULT, dan HISTORY_RESULT
+  // tetap seperti kode sebelumnya.
+
+});
 
   /**********************************************
    * HASIL TES KONEKSI
