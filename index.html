@@ -3,695 +3,774 @@
 <html lang="id">
 
 <head>
+  <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
+  <title>Scan Barcode</title>
 
-<title>Scan Barcode HP</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<style>
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
 
-* {
-  box-sizing: border-box;
-}
+    .container {
+      max-width: 520px;
+      margin: auto;
+    }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f1f5f9;
-  color: #1e293b;
-}
+    .header {
+      background: #1d4ed8;
+      color: white;
+      padding: 22px;
+      border-radius: 14px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
 
-header {
-  background: #1d4ed8;
-  color: white;
-  text-align: center;
-  padding: 22px 12px;
-}
+    .header h2 {
+      margin: 0 0 8px;
+    }
 
-header h2 {
-  margin: 0 0 7px;
-}
+    .card {
+      background: white;
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px #00000012;
+    }
 
-header p {
-  font-size: 13px;
-  margin: 0;
-}
+    #reader {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 10px;
+    }
 
-.container {
-  max-width: 600px;
-  margin: 18px auto;
-  padding: 0 14px;
-}
+    button {
+      border: none;
+      padding: 13px 18px;
+      border-radius: 9px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
 
-.card {
-  background: white;
-  padding: 17px;
-  margin-bottom: 15px;
-  border-radius: 13px;
-  box-shadow: 0 3px 12px #0000000c;
-}
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
 
-button {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 15px;
-  margin-top: 10px;
-  cursor: pointer;
-}
+    .btn-start {
+      background: #16a34a;
+      color: white;
+    }
 
-.primary {
-  background: #1d4ed8;
-  color: white;
-}
+    .btn-stop {
+      background: #dc2626;
+      color: white;
+    }
 
-.danger {
-  background: #dc2626;
-  color: white;
-}
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
 
-.secondary {
-  background: #e2e8f0;
-  color: #1e293b;
-}
+    .status {
+      padding: 12px;
+      border-radius: 9px;
+      background: #e2e8f0;
+      margin-bottom: 12px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
 
-input {
-  width: 100%;
-  padding: 13px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  margin-top: 10px;
-  font-size: 15px;
-}
+    .success {
+      background: #dcfce7;
+      color: #166534;
+    }
 
-#reader {
-  width: 100%;
-  overflow: hidden;
-  border-radius: 10px;
-}
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
 
-.status {
-  background: #eff6ff;
-  color: #1d4ed8;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  margin-top: 12px;
-  overflow-wrap: anywhere;
-}
+    .result {
+      font-size: 18px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+      color: #1d4ed8;
+    }
 
-.success {
-  background: #dcfce7;
-  color: #166534;
-}
+    .small {
+      font-size: 13px;
+      color: #64748b;
+    }
 
-.error {
-  background: #fee2e2;
-  color: #991b1b;
-}
+    .history-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0;
+      overflow-wrap: anywhere;
+    }
 
-.result {
-  background: #f8fafc;
-  padding: 13px;
-  border-radius: 8px;
-  margin-top: 12px;
-  overflow-wrap: anywhere;
-}
+    .history-item:last-child {
+      border-bottom: none;
+    }
 
-.number {
-  font-size: 28px;
-  color: #1d4ed8;
-  font-weight: bold;
-}
-
-.history {
-  border-bottom: 1px solid #e2e8f0;
-  padding: 11px 0;
-  overflow-wrap: anywhere;
-}
-
-.small {
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 5px;
-}
-
-#gasFrame {
-  width: 100%;
-  height: 145px;
-  border: 0;
-  border-radius: 8px;
-  background: #fff;
-}
-
-footer {
-  text-align: center;
-  color: #64748b;
-  font-size: 12px;
-  padding: 20px;
-}
-
-</style>
-
+    #gasFrame {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      left: -10000px;
+      top: 0;
+      border: 0;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-
-  <h2>📷 SCAN BARCODE</h2>
-
-  <p>Scanner Barcode & QR Code Berbasis HP</p>
-
-</header>
-
-
 <div class="container">
+
+  <div class="header">
+    <h2>SCAN BARCODE</h2>
+    <div>Aplikasi Scan Barcode melalui Handphone</div>
+  </div>
 
   <div class="card">
 
-    <b>STATUS KONEKSI DATABASE</b>
+    <h3>Status Koneksi</h3>
 
-    <div id="connection" class="status">
+    <div id="connectionStatus" class="status">
       Menghubungkan ke Google Sheets...
     </div>
 
-    <!--
-      GANTI URL INI DENGAN URL WEB APP APPS SCRIPT
-      Contoh berakhiran /exec
-    -->
-
-    <iframe
-      id="gasFrame"
-      src="https://script.google.com/macros/s/AKfycbzpqaorDRPu96Ek1u8VcZ1mPyRns7vfv6bo-jxG8ep3QlnTb7eO1ensV1iSuhYOu2vr8g/exec"
-      allow="clipboard-write">
-    </iframe>
+    <div id="saveStatus" class="status">
+      Menunggu scan barcode.
+    </div>
 
   </div>
 
-
   <div class="card">
 
-    <b>TOTAL SCAN BERHASIL</b>
-
-    <div class="number" id="total">0</div>
-
-  </div>
-
-
-  <div class="card">
-
-    <h3>📸 Pemindaian Kamera</h3>
+    <h3>Kamera Scanner</h3>
 
     <div id="reader"></div>
 
-    <button class="primary"
-            id="startBtn"
-            onclick="mulaiScan()">
-
+    <button
+      id="startButton"
+      class="btn-start"
+      disabled>
       AKTIFKAN KAMERA
-
     </button>
 
-    <button class="danger"
-            id="stopBtn"
-            onclick="hentikanScan()"
-            style="display:none">
-
-      HENTIKAN KAMERA
-
+    <button
+      id="stopButton"
+      class="btn-stop"
+      disabled>
+      MATIKAN KAMERA
     </button>
 
-    <div id="status" class="status">
+    <p class="small">
+      Izinkan akses kamera ketika browser meminta izin.
+      Arahkan kamera ke QR Code atau barcode.
+    </p>
 
-      Menunggu kamera diaktifkan.
+  </div>
 
-    </div>
+  <div class="card">
 
-    <div id="hasil" class="result"
-         style="display:none">
+    <h3>Hasil Scan Terakhir</h3>
 
-      <b>Hasil Barcode:</b>
-
-      <div id="barcodeText"></div>
-
-      <div id="saveStatus" class="small"></div>
-
+    <div id="lastCode" class="result">
+      Belum ada data
     </div>
 
   </div>
 
-
   <div class="card">
 
-    <h3>⌨️ Input Barcode Manual</h3>
+    <h3>Input Manual</h3>
 
     <input
       type="text"
-      id="manualBarcode"
-      placeholder="Masukkan kode barcode">
+      id="manualCode"
+      placeholder="Masukkan kode barcode"
+      style="
+        width:100%;
+        padding:13px;
+        border:1px solid #cbd5e1;
+        border-radius:8px;
+        font-size:16px;
+      ">
 
-    <button class="primary"
-            onclick="simpanManual()">
-
-      SIMPAN BARCODE
-
+    <button
+      id="manualButton"
+      class="btn-secondary"
+      disabled>
+      SIMPAN KODE MANUAL
     </button>
 
   </div>
 
-
   <div class="card">
 
-    <h3>📋 Riwayat Scan</h3>
+    <h3>Riwayat Scan Terbaru</h3>
 
-    <div id="history">
-      Menunggu data...
-    </div>
-
-    <button class="secondary"
-            onclick="muatRiwayat()">
-
-      REFRESH RIWAYAT
-
+    <button
+      id="historyButton"
+      class="btn-secondary"
+      disabled>
+      TAMPILKAN RIWAYAT
     </button>
+
+    <div id="historyList" style="margin-top:12px">
+      Belum ada riwayat.
+    </div>
 
   </div>
 
 </div>
 
-
-<footer>
-
-  Aplikasi Scan Barcode - Google Sheets
-
-</footer>
-
+<!-- IFRAME GOOGLE APPS SCRIPT -->
+<iframe
+  id="gasFrame"
+  title="Koneksi Google Apps Script">
+</iframe>
 
 <script>
 
-let scanner = null;
+/**************************************************
+ * KONFIGURASI UTAMA
+ **************************************************/
 
-let sedangScan = false;
+// GANTI dengan URL Web App Apps Script Anda.
+const GAS_URL =
+  'TEMPEL_URL_WEB_APP_APPS_SCRIPT_DI_SINI';
 
-let siapDatabase = false;
-
-let sedangMenyimpan = false;
-
-let totalScan = 0;
-
-let gasOrigin = '';
-
-let kodeTerakhir = '';
-
-let waktuTerakhir = 0;
-
-
-// ====================================
-// KONEKSI GOOGLE APPS SCRIPT
-// ====================================
+/**************************************************
+ * VARIABEL APLIKASI
+ **************************************************/
 
 const gasFrame = document.getElementById('gasFrame');
 
+const connectionStatus =
+  document.getElementById('connectionStatus');
+
+const saveStatus =
+  document.getElementById('saveStatus');
+
+const lastCode =
+  document.getElementById('lastCode');
+
+const startButton =
+  document.getElementById('startButton');
+
+const stopButton =
+  document.getElementById('stopButton');
+
+const manualButton =
+  document.getElementById('manualButton');
+
+const historyButton =
+  document.getElementById('historyButton');
+
+let gasOrigin = null;
+let connected = false;
+let html5QrCode = null;
+let cameraRunning = false;
+let isSaving = false;
+let lastScannedCode = '';
+let lastScannedTime = 0;
+
+/**************************************************
+ * STATUS TAMPILAN
+ **************************************************/
+
+function setStatus(element, message, type) {
+
+  element.textContent = message;
+
+  element.className = 'status';
+
+  if (type === 'success') {
+    element.classList.add('success');
+  }
+
+  if (type === 'error') {
+    element.classList.add('error');
+  }
+
+}
+
+/**************************************************
+ * MENERIMA PESAN DARI APPS SCRIPT
+ **************************************************/
 
 window.addEventListener('message', function(event) {
 
-  if (event.source !== gasFrame.contentWindow) return;
+  // Hanya menerima pesan dari iframe Apps Script
+  if (event.source !== gasFrame.contentWindow) {
+    return;
+  }
 
-  if (gasOrigin && event.origin !== gasOrigin) return;
+  const data = event.data || {};
 
-  const pesan = event.data;
-
-  if (!pesan || typeof pesan !== 'object') return;
-
-
-  if (pesan.type === 'GAS_READY') {
+  // Handshake pertama: simpan origin iframe yang sebenarnya
+  if (data.type === 'GAS_READY') {
 
     gasOrigin = event.origin;
 
-    siapDatabase = true;
-
-    document.getElementById('connection').textContent =
-      '✓ DATABASE GOOGLE SHEETS TERHUBUNG';
-
-    document.getElementById('connection').className =
-      'status success';
-
-    muatRiwayat();
-
-  }
-
-
-  if (pesan.type === 'SCAN_SAVED') {
-
-    sedangMenyimpan = false;
-
-    totalScan++;
-
-    document.getElementById('total').textContent = totalScan;
-
-    document.getElementById('saveStatus').textContent =
-      '✓ Berhasil disimpan: ' +
-      pesan.tanggal + ' ' + pesan.jam;
-
-    document.getElementById('status').textContent =
-      'Barcode berhasil masuk ke Google Sheets.';
-
-    document.getElementById('status').className =
-      'status success';
-
-    muatRiwayat();
-
-  }
-
-
-  if (pesan.type === 'SCAN_ERROR') {
-
-    sedangMenyimpan = false;
-
-    document.getElementById('saveStatus').textContent =
-      'Gagal: ' + pesan.message;
-
-    document.getElementById('status').textContent =
-      'Penyimpanan gagal: ' + pesan.message;
-
-    document.getElementById('status').className =
-      'status error';
-
-  }
-
-if (pesan.type === 'HISTORY_DATA') {
-
-  document.getElementById('total').textContent =
-    pesan.total;
-
-  const area = document.getElementById('history');
-
-  area.innerHTML = '';
-
-  if (!pesan.data || pesan.data.length === 0) {
-
-    area.textContent = 'Belum ada data scan.';
+    kirimKeGas({
+      type: 'PING'
+    });
 
     return;
+  }
+
+  // Pesan berikutnya harus berasal dari origin yang sama
+  if (!gasOrigin || event.origin !== gasOrigin) {
+    return;
+  }
+
+  /**********************************************
+   * HASIL TES KONEKSI
+   **********************************************/
+
+  if (data.type === 'CONNECTION_RESULT') {
+
+    const result = data.result || {};
+
+    if (result.success) {
+
+      connected = true;
+
+      setStatus(
+        connectionStatus,
+        'Terhubung ke Google Sheets: ' +
+        result.namaSheet,
+        'success'
+      );
+
+      startButton.disabled = false;
+      manualButton.disabled = false;
+      historyButton.disabled = false;
+
+    } else {
+
+      connected = false;
+
+      setStatus(
+        connectionStatus,
+        'Koneksi gagal: ' + result.message,
+        'error'
+      );
+
+    }
 
   }
 
-  pesan.data.forEach(function(item) {
+  /**********************************************
+   * HASIL PENYIMPANAN BARCODE
+   **********************************************/
+
+  if (data.type === 'SAVE_RESULT') {
+
+    isSaving = false;
+
+    const result = data.result || {};
+
+    if (result.success) {
+
+      setStatus(
+        saveStatus,
+        'BERHASIL DISIMPAN: ' +
+        result.kode +
+        ' | ' +
+        result.tanggal +
+        ' ' +
+        result.waktu,
+        'success'
+      );
+
+      lastCode.textContent = result.kode;
+
+      document.getElementById('manualCode').value = '';
+
+    } else {
+
+      setStatus(
+        saveStatus,
+        'Gagal menyimpan: ' + result.message,
+        'error'
+      );
+
+    }
+
+  }
+
+  /**********************************************
+   * HASIL RIWAYAT SCAN
+   **********************************************/
+
+  if (data.type === 'HISTORY_RESULT') {
+
+    tampilkanRiwayat(data.result || []);
+
+  }
+
+});
+
+/**************************************************
+ * MENGIRIM PESAN KE APPS SCRIPT
+ **************************************************/
+
+function kirimKeGas(data) {
+
+  if (!gasOrigin) {
+    return false;
+  }
+
+  gasFrame.contentWindow.postMessage(
+    data,
+    gasOrigin
+  );
+
+  return true;
+
+}
+
+/**************************************************
+ * KIRIM BARCODE KE GOOGLE SHEETS
+ **************************************************/
+
+function kirimBarcode(kode) {
+
+  if (!connected) {
+
+    setStatus(
+      saveStatus,
+      'Aplikasi belum terhubung ke Google Sheets.',
+      'error'
+    );
+
+    return;
+  }
+
+  if (isSaving) {
+    return;
+  }
+
+  const nilai = String(kode || '').trim();
+
+  if (!nilai) {
+    return;
+  }
+
+  isSaving = true;
+
+  lastCode.textContent = nilai;
+
+  setStatus(
+    saveStatus,
+    'Mengirim data ke Google Sheets...',
+    ''
+  );
+
+  const requestId =
+    Date.now().toString() +
+    Math.random().toString(16).slice(2);
+
+  kirimKeGas({
+    type: 'SCAN_BARCODE',
+    requestId: requestId,
+    kode: nilai
+  });
+
+}
+
+/**************************************************
+ * PROSES BARCODE DARI KAMERA
+ **************************************************/
+
+function onScanSuccess(decodedText) {
+
+  const sekarang = Date.now();
+
+  // Hindari penyimpanan berulang dari barcode yang sama
+  if (
+    decodedText === lastScannedCode &&
+    sekarang - lastScannedTime < 3000
+  ) {
+    return;
+  }
+
+  lastScannedCode = decodedText;
+  lastScannedTime = sekarang;
+
+  kirimBarcode(decodedText);
+
+}
+
+/**************************************************
+ * AKTIFKAN KAMERA
+ **************************************************/
+
+async function aktifkanKamera() {
+
+  if (!connected) {
+    alert('Aplikasi belum terhubung ke Google Sheets.');
+    return;
+  }
+
+  try {
+
+    if (!html5QrCode) {
+
+      html5QrCode = new Html5Qrcode(
+        'reader',
+        {
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.CODE_93,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.CODABAR
+          ],
+          verbose: false
+        }
+      );
+
+    }
+
+    const konfigurasi = {
+      fps: 10,
+      qrbox: {
+        width: 250,
+        height: 180
+      },
+      aspectRatio: 1.0
+    };
+
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      konfigurasi,
+      onScanSuccess,
+      function() {}
+    );
+
+    cameraRunning = true;
+
+    startButton.disabled = true;
+    stopButton.disabled = false;
+
+    setStatus(
+      saveStatus,
+      'Kamera aktif. Silakan scan barcode.',
+      'success'
+    );
+
+  } catch (error) {
+
+    setStatus(
+      saveStatus,
+      'Kamera gagal dibuka: ' + error,
+      'error'
+    );
+
+  }
+
+}
+
+/**************************************************
+ * MATIKAN KAMERA
+ **************************************************/
+
+async function matikanKamera() {
+
+  if (!html5QrCode || !cameraRunning) {
+    return;
+  }
+
+  try {
+
+    await html5QrCode.stop();
+
+    cameraRunning = false;
+
+    startButton.disabled = false;
+    stopButton.disabled = true;
+
+    setStatus(
+      saveStatus,
+      'Kamera berhasil dimatikan.',
+      ''
+    );
+
+  } catch (error) {
+
+    setStatus(
+      saveStatus,
+      'Gagal mematikan kamera: ' + error,
+      'error'
+    );
+
+  }
+
+}
+
+/**************************************************
+ * INPUT BARCODE MANUAL
+ **************************************************/
+
+function simpanManual() {
+
+  const kode =
+    document.getElementById('manualCode').value.trim();
+
+  if (!kode) {
+    alert('Masukkan kode barcode terlebih dahulu.');
+    return;
+  }
+
+  kirimBarcode(kode);
+
+}
+
+/**************************************************
+ * MEMINTA RIWAYAT SCAN
+ **************************************************/
+
+function mintaRiwayat() {
+
+  if (!connected) {
+    return;
+  }
+
+  kirimKeGas({
+    type: 'GET_HISTORY'
+  });
+
+}
+
+/**************************************************
+ * MENAMPILKAN RIWAYAT
+ **************************************************/
+
+function tampilkanRiwayat(data) {
+
+  const list = document.getElementById('historyList');
+
+  if (!data || data.length === 0) {
+
+    list.textContent = 'Belum ada riwayat scan.';
+
+    return;
+  }
+
+  list.innerHTML = '';
+
+  data.forEach(function(item) {
 
     const div = document.createElement('div');
 
-    div.className = 'history';
+    div.className = 'history-item';
 
-    const kode = document.createElement('strong');
-
-    kode.textContent = item.barcode;
+    const judul = document.createElement('strong');
+    judul.textContent = item.kode;
 
     const detail = document.createElement('div');
-
     detail.className = 'small';
-
     detail.textContent =
-      item.tanggal + ' | ' +
-      item.jam + ' | ' +
-      item.format;
+      item.tanggal + ' ' +
+      item.waktu + ' | ' +
+      item.status;
 
-    div.appendChild(kode);
-
+    div.appendChild(judul);
     div.appendChild(detail);
 
-    area.appendChild(div);
+    list.appendChild(div);
 
   });
 
 }
 
-});
+/**************************************************
+ * EVENT TOMBOL
+ **************************************************/
 
+startButton.addEventListener(
+  'click',
+  aktifkanKamera
+);
 
-function kirimData(barcode, format) {
+stopButton.addEventListener(
+  'click',
+  matikanKamera
+);
 
-  if (!siapDatabase) {
+manualButton.addEventListener(
+  'click',
+  simpanManual
+);
 
-    alert('Database belum terhubung. Tunggu beberapa saat.');
+historyButton.addEventListener(
+  'click',
+  mintaRiwayat
+);
 
-    return;
+/**************************************************
+ * MEMULAI KONEKSI
+ **************************************************/
 
-  }
+if (
+  GAS_URL.indexOf('/exec') === -1 ||
+  GAS_URL.indexOf('TEMPEL_URL') !== -1
+) {
 
-  if (sedangMenyimpan) return;
+  setStatus(
+    connectionStatus,
+    'Silakan isi URL Web App Apps Script pada GAS_URL.',
+    'error'
+  );
 
-  sedangMenyimpan = true;
+} else {
 
-  document.getElementById('hasil').style.display = 'block';
+  // Event listener sudah dipasang sebelum iframe dimuat
+  gasFrame.src = GAS_URL;
 
-  document.getElementById('barcodeText').textContent = barcode;
-
-  document.getElementById('saveStatus').textContent =
-    'Mengirim data ke Google Sheets...';
-
-  gasFrame.contentWindow.postMessage({
-
-    type: 'SCAN_DATA',
-
-    barcode: barcode,
-
-    format: format,
-
-    perangkat: navigator.userAgent
-
-  }, gasOrigin);
-
-  // Pengaman jika tidak ada konfirmasi dari server
   setTimeout(function() {
 
-    if (sedangMenyimpan) {
+    if (!connected) {
 
-      sedangMenyimpan = false;
-
-      document.getElementById('saveStatus').textContent =
-        'Belum ada konfirmasi. Periksa koneksi dan riwayat sebelum mencoba ulang.';
+      setStatus(
+        connectionStatus,
+        'Belum terhubung. Periksa URL Web App, deployment, dan izin akses.',
+        'error'
+      );
 
     }
 
   }, 20000);
 
 }
-
-
-// ====================================
-// AKTIFKAN KAMERA
-// ====================================
-
-async function mulaiScan() {
-
-  if (sedangScan) return;
-
-  if (!siapDatabase) {
-
-    tampilStatus(
-      'Database belum terhubung.',
-      'error'
-    );
-
-    return;
-
-  }
-
-  if (!navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia) {
-
-    tampilStatus(
-      'Browser tidak mendukung kamera. Gunakan Chrome HTTPS.',
-      'error'
-    );
-
-    return;
-
-  }
-
-  try {
-
-    if (!scanner) {
-
-      scanner = new Html5Qrcode('reader');
-
-    }
-
-    tampilStatus('Meminta izin kamera...', '');
-
-    await scanner.start(
-
-      { facingMode: 'environment' },
-
-      {
-        fps: 10,
-        qrbox: {
-          width: 250,
-          height: 250
-        }
-      },
-
-      berhasilScan,
-
-      function() {}
-
-    );
-
-
-    sedangScan = true;
-
-    document.getElementById('startBtn').style.display = 'none';
-
-    document.getElementById('stopBtn').style.display = 'block';
-
-    tampilStatus(
-      'Kamera aktif. Arahkan ke barcode.',
-      'success'
-    );
-
-  }
-
-  catch(error) {
-
-    tampilStatus(
-      'Kamera gagal diaktifkan: ' + error.message,
-      'error'
-    );
-
-  }
-
-}
-
-
-// ====================================
-// HASIL SCAN
-// ====================================
-
-function berhasilScan(decodedText, decodedResult) {
-
-  if (sedangMenyimpan) return;
-
-  const sekarang = Date.now();
-
-  if (
-    decodedText === kodeTerakhir &&
-    sekarang - waktuTerakhir < 2000
-  ) return;
-
-  kodeTerakhir = decodedText;
-
-  waktuTerakhir = sekarang;
-
-  const format =
-    decodedResult.result.format.formatName || 'Barcode';
-
-  kirimData(decodedText, format);
-
-}
-
-
-// ====================================
-// HENTIKAN KAMERA
-// ====================================
-
-async function hentikanScan() {
-
-  if (!scanner || !sedangScan) return;
-
-  try {
-
-    await scanner.stop();
-
-    sedangScan = false;
-
-    document.getElementById('startBtn').style.display = 'block';
-
-    document.getElementById('stopBtn').style.display = 'none';
-
-    tampilStatus('Kamera dihentikan.', '');
-
-  }
-
-  catch(error) {
-
-    tampilStatus(
-      'Gagal menghentikan kamera.',
-      'error'
-    );
-
-  }
-
-}
-
-
-// ====================================
-// INPUT MANUAL
-// ====================================
-
-function simpanManual() {
-
-  const input = document.getElementById('manualBarcode');
-
-  const kode = input.value.trim();
-
-  if (!kode) {
-
-    alert('Masukkan kode barcode.');
-
-    return;
-
-  }
-
-  kirimData(kode, 'Input Manual');
-
-  input.value = '';
-
-}
-
-
-// ====================================
-// STATUS
-// ====================================
-
-function tampilStatus(pesan, jenis) {
-
-  const el = document.getElementById('status');
-
-  el.textContent = pesan;
-
-  el.className = 'status ' + (jenis || '');
-
-}
-
-
-// ====================================
-// RIWAYAT SCAN
-// ====================================
-
-function muatRiwayat() {
-
-  if (!siapDatabase) return;
-
-  gasFrame.contentWindow.postMessage({
-
-    type: 'GET_HISTORY'
-
-  }, gasOrigin);
-
-}
-
-
-// ====================================
-// MENERIMA RIWAYAT
-// ====================================
 
 </script>
 
