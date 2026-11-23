@@ -151,68 +151,109 @@ function kirimKeGas(data) {
  * SATU-SATUNYA EVENT LISTENER PESAN
  **************************************************/
 window.addEventListener('message', function(event) {
+
+  // Pastikan pesan berasal dari iframe Apps Script.
   if (event.source !== gasFrame.contentWindow) return;
 
   const data = event.data || {};
 
-  // Pesan pertama dari iframe Apps Script.
-  if (data.type === 'GAS_READY') {
-    gasOrigin = event.origin;
-    setStatus(connectionStatus, 'Apps Script siap. Memeriksa database...', '');
-    kirimKeGas({ type: 'PING' });
-    return;
-  }
-
-  // Setelah origin diketahui, tolak pesan dari origin lain.
-  if (!gasOrigin || event.origin !== gasOrigin) return;
-
+  // Tampilkan jika alamat GitHub tidak sesuai.
+  // Pemeriksaan ini harus dilakukan sebelum validasi gasOrigin.
   if (data.type === 'ORIGIN_ERROR') {
     setStatus(
       connectionStatus,
-      'Origin GitHub tidak cocok. Diharapkan: ' + data.expected +
-      ' | Diterima: ' + data.received,
+      'ORIGIN TIDAK COCOK. Diharapkan: ' +
+      data.expected +
+      ' | Diterima: ' +
+      data.received,
       'error'
     );
     return;
   }
 
+  // Konfirmasi awal dari Apps Script.
+  if (data.type === 'GAS_READY') {
+    gasOrigin = event.origin;
+
+    setStatus(
+      connectionStatus,
+      'Apps Script siap. Origin: ' + gasOrigin +
+      '. Memeriksa database...',
+      ''
+    );
+
+    kirimKeGas({ type: 'PING' });
+    return;
+  }
+
+  // Pesan berikutnya harus berasal dari origin iframe yang sama.
+  if (!gasOrigin || event.origin !== gasOrigin) return;
+
+  // Hasil tes koneksi database.
   if (data.type === 'CONNECTION_RESULT') {
     const result = data.result || {};
+
     if (result.success) {
       connected = true;
-      setStatus(connectionStatus, 'TERHUBUNG: ' + result.namaSheet, 'success');
+
+      setStatus(
+        connectionStatus,
+        'TERHUBUNG: ' + result.namaSheet,
+        'success'
+      );
+
       aktifkanTombol(true);
+
     } else {
       connected = false;
       aktifkanTombol(false);
-      setStatus(connectionStatus, 'Koneksi gagal: ' + (result.message || 'Kesalahan tidak diketahui.'), 'error');
+
+      setStatus(
+        connectionStatus,
+        'DATABASE GAGAL: ' + result.message,
+        'error'
+      );
     }
     return;
   }
 
+  // Hasil penyimpanan barcode.
   if (data.type === 'SAVE_RESULT') {
     isSaving = false;
     const result = data.result || {};
+
     if (result.success) {
       setStatus(
         saveStatus,
-        'BERHASIL DISIMPAN: ' + result.kode + ' | ' + result.tanggal + ' ' + result.waktu,
+        'BERHASIL DISIMPAN: ' +
+        result.kode + ' | ' +
+        result.tanggal + ' ' +
+        result.waktu,
         'success'
       );
+
       lastCode.textContent = result.kode;
       document.getElementById('manualCode').value = '';
+
     } else {
-      setStatus(saveStatus, 'Gagal menyimpan: ' + (result.message || 'Kesalahan tidak diketahui.'), 'error');
+      setStatus(
+        saveStatus,
+        'GAGAL MENYIMPAN: ' + result.message,
+        'error'
+      );
     }
     return;
   }
 
+  // Hasil pengambilan riwayat.
   if (data.type === 'HISTORY_RESULT') {
     tampilkanRiwayat(data.result || []);
+
     if (data.message) {
-      setStatus(saveStatus, 'Gagal mengambil riwayat: ' + data.message, 'error');
+      setStatus(saveStatus, data.message, 'error');
     }
   }
+
 });
 
 /**************************************************
