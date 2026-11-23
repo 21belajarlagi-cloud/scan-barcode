@@ -319,17 +319,26 @@ function setStatus(element, message, type) {
  * MENERIMA PESAN DARI APPS SCRIPT
  **************************************************/
 
+
 window.addEventListener('message', function(event) {
 
+  // Pastikan pesan berasal dari iframe Apps Script.
   if (event.source !== gasFrame.contentWindow) {
     return;
   }
 
   const data = event.data || {};
 
+  // Pesan awal dari Apps Script.
   if (data.type === 'GAS_READY') {
 
     gasOrigin = event.origin;
+
+    setStatus(
+      connectionStatus,
+      'Apps Script siap. Memeriksa database...',
+      ''
+    );
 
     kirimKeGas({
       type: 'PING'
@@ -338,15 +347,90 @@ window.addEventListener('message', function(event) {
     return;
   }
 
-  if (!gasOrigin || event.origin !== gasOrigin) {
+  // Jika pesan berasal dari iframe yang sama,
+  // catat origin aktual jika belum diketahui.
+  if (!gasOrigin) {
+    gasOrigin = event.origin;
+  }
+
+  if (event.origin !== gasOrigin) {
     return;
   }
 
-  // Bagian CONNECTION_RESULT,
-  // SAVE_RESULT, dan HISTORY_RESULT
-  // tetap seperti kode sebelumnya.
+  // Hasil tes koneksi.
+  if (data.type === 'CONNECTION_RESULT') {
+
+    const result = data.result || {};
+
+    if (result.success) {
+
+      connected = true;
+
+      setStatus(
+        connectionStatus,
+        'TERHUBUNG: ' + result.namaSheet,
+        'success'
+      );
+
+      startButton.disabled = false;
+      manualButton.disabled = false;
+      historyButton.disabled = false;
+
+    } else {
+
+      connected = false;
+
+      setStatus(
+        connectionStatus,
+        'Koneksi gagal: ' + result.message,
+        'error'
+      );
+
+    }
+  }
+
+  // Hasil penyimpanan barcode.
+  if (data.type === 'SAVE_RESULT') {
+
+    isSaving = false;
+
+    const result = data.result || {};
+
+    if (result.success) {
+
+      setStatus(
+        saveStatus,
+        'BERHASIL DISIMPAN: ' +
+        result.kode + ' | ' +
+        result.tanggal + ' ' +
+        result.waktu,
+        'success'
+      );
+
+      lastCode.textContent = result.kode;
+
+      document.getElementById('manualCode').value = '';
+
+    } else {
+
+      setStatus(
+        saveStatus,
+        'Gagal menyimpan: ' + result.message,
+        'error'
+      );
+
+    }
+  }
+
+  // Hasil riwayat.
+  if (data.type === 'HISTORY_RESULT') {
+
+    tampilkanRiwayat(data.result || []);
+
+  }
 
 });
+
 
   /**********************************************
    * HASIL TES KONEKSI
@@ -757,7 +841,25 @@ if (
 } else {
 
   // Event listener sudah dipasang sebelum iframe dimuat
-  gasFrame.src = GAS_URL;
+
+gasFrame.addEventListener('load', function() {
+
+  setStatus(
+    connectionStatus,
+    'Halaman Apps Script berhasil dimuat. Memeriksa koneksi...',
+    ''
+  );
+
+  // Kirim PING awal.
+  // Wildcard hanya untuk permintaan awal.
+  gasFrame.contentWindow.postMessage({
+    type: 'PING'
+  }, '*');
+
+});
+
+gasFrame.src = GAS_URL;
+
 
   setTimeout(function() {
 
